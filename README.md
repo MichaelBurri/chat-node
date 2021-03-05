@@ -1,6 +1,6 @@
 # Chat Node
 
-Chat en directo hecho con Node e io.socket
+Chat en directo hecho con Node y socket.io
 
 ## Para correrlo
 ```
