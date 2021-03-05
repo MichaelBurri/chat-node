@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <script src="https://kit.fontawesome.com/647367d752.js" crossorigin="anonymous"></script>
+    <style>
+      body { margin: 10px; padding-bottom: 6rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 3rem; left: 5rem; right: 10rem; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+      #messages { list-style-type: none; margin: 0 9.5rem 0 5rem; padding: 0; }
+      #messages > li { padding: 0.5rem 1rem; }
+      #messages > li:nth-child(odd) { background: #efefef; }
+      a,#paleta{        
+        align-self: center;
+      }
+      a{
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      h1{
+        text-align: center;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <h1 id="nombre">Escribe tu nickname</h1>
+
+    <ul id="messages"></ul>
+
+    <form id="form" action="">
+      <a  id="negrita"><i class="fas fa-bold"></i></a> 
+      <input id="input" autocomplete="off" /><button id="boton">Enviar</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+
+<script>
+  var socket = io();
+  var data={
+    nombre:"",
+    texto:"",
+    color:"",
+    negro:false    
+  };
+  var form = document.getElementById('form');
+  var input = document.getElementById('input');
+  var boton=document.getElementById('boton');
+  var messages = document.getElementById('messages');
+  var negrita=document.getElementById('negrita');
+
+  var logged=null;
+  var inputMSG=null;
+  var paleta=null;
+  var bold=false;
+
+  negrita.style.color="grey"
+  negrita.style.display="none";
+
+  function maquetar(){
+    if (input.value) {
+      data.nombre=input.value;
+      if(logged==null){
+          document.getElementById('nombre').textContent=data.nombre;
+          document.getElementById('nombre').style.textAlign="center";
+      }
+      input.remove();boton.remove();
+      
+      if(inputMSG==null){               
+        inputMSG=document.createElement("input");
+        inputMSG.id="input";
+        inputMSG.placeholder="Escribe un mensaje";
+        
+
+          negrita.style.display="block";
+
+          paleta=document.createElement("input");
+          paleta.setAttribute("type","color");
+          paleta.id="paleta";
+
+          form.appendChild(paleta)
+          form.appendChild(inputMSG);
+          inputMSG.focus();
+          
+          paleta.addEventListener("change",function(e){
+              e.preventDefault();
+              data.color = paleta.value;
+          })
+
+          negrita.addEventListener("click",function(){
+              bold=!bold
+              data.negro=bold;
+              if(bold){
+                  negrita.style.color="black"
+              }else{
+                  negrita.style.color="grey"
+              }
+              
+          })
+
+          inputMSG.addEventListener("keypress",function(e){
+              if (inputMSG.value && e.keyCode==13) {
+                  data.texto=inputMSG.value;
+                  socket.emit('mensajeServer', data);
+                  inputMSG.value=" ";
+              }
+          })
+          
+      }
+  
+  }
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();    
+    maquetar();    
+  });
+
+  boton.addEventListener('click',maquetar);
+
+  socket.on('mensajeServer', function(msg) {
+    var item = document.createElement('li');
+
+    item.textContent = msg.nombre+": "+msg.texto;
+    item.style.color=msg.color;
+    if(msg.negro){
+                item.style.fontWeight="bold"
+            }
+
+    messages.appendChild(item);
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+</script>
+  </body>
+  
+</html>
